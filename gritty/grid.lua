@@ -13,9 +13,7 @@ function Grid:set(x,y,val)
 end
 
 function Grid:has(x,y)
-    if y < 0 or y > #self then return false end
-    if x < 0 or x > #self[1] then return false end
-    return true
+    if self[y] and self[y][x] then return true else return false end
 end
 
 function Grid:neighbors(x,y,condition)
@@ -92,4 +90,52 @@ function Grid:automata(func,condition)
     for i=1, #self do
         self[i] = newgrid[i]
     end
+end
+
+local function getRegionCells(startX, startY, grid)
+    local cells = {}
+    local mapFlags = {}
+    for y=1, #grid do mapFlags[y] = {} for x=1, #grid[y] do mapFlags[y][x] = false end end
+    local cellType = grid:get(startX, startY)
+    local queue = {}
+    queue[#queue+1] = {startY,startX}
+
+    while #queue > 0 do
+        local cell
+        cell, queue[#queue] = queue[#queue], nil
+
+        if grid:has(cell[2], cell[1]) and grid:get(cell[2], cell[1]) == cellType and mapFlags[cell[1]][cell[2]] == false then
+            cells[#cells+1] = cell
+            mapFlags[cell[1]][cell[2]] = true
+            queue[#queue+1] = {cell[1],cell[2]+1}
+            queue[#queue+1] = {cell[1],cell[2]-1}
+            queue[#queue+1] = {cell[1]+1,cell[2]}
+            queue[#queue+1] = {cell[1]-1,cell[2]}
+        end
+        
+    end
+
+    return cells
+end
+
+function Grid:getRegions(condition)
+    local regions = {}
+    local mapFlags = {}
+    for y=1, #self do mapFlags[y] = {} for x=1, #self[y] do mapFlags[y][x] = false end end
+
+    for y=1, #self do
+        for x=1, #self do
+            if mapFlags[y][x] == false and self:get(x,y) == condition then
+                local region = getRegionCells(x,y,self)
+                regions[#regions+1] = region
+
+                for i=1, #region do
+                    local cell = region[i]
+                    mapFlags[cell[1]][cell[2]] = true
+                end
+            end
+        end
+    end
+
+    return regions
 end

@@ -24,6 +24,7 @@ end
 
 function gritty.generateRandom(x,y,foo,bar)
     if not foo then foo = 1 end
+    if not bar then bar = 0 end
     local grid = Grid:create()
     for iy=1, y do
         grid[iy] = {}

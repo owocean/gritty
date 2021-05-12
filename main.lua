@@ -2,7 +2,7 @@ local gritty = require "gritty" -- import gritty
 
 math.randomseed(os.time()) -- seed RNG
 
-map = gritty.generateRandom(50, 50) -- create a 50x50 grid randomly composed of 1 or nil
+map = gritty.generateRandom(50, 50, 1, 2) -- create a 50x50 grid randomly composed of 1 or 0
 
 function love.load()
     tilesetImage = love.graphics.newImage("tileset.png") -- load tileset image
@@ -15,6 +15,7 @@ end
 
 function love.draw()
     map:iterate(plot) -- built in function to iterate through the entire grid and execute callback
+    if regions then love.graphics.print("Number of regions: "..#regions, 10, 465) end -- print number of detected regions, once calculated
 end
 
 function plot(x,y,type) -- callback can accept x, y, and type
@@ -32,10 +33,14 @@ function love.keypressed(k)
     if k == "space" then
         map:automata(generateIslands, 1) -- when we press space, preform cellular automata using a custom function, and 1 as a condition to count neighbors
     end
+
+    if k == "return" then
+        regions = map:getRegions(1) -- count each individual region composed of cells with value 1
+    end
 end
 
 function generateIslands(neighbors, cell)
     if neighbors > 4 then return 1 -- if cell has more than 4 neighbors, live
-    elseif neighbors < 4 then return nil -- if cell has less than 4 neighbors, die
+    elseif neighbors < 4 then return 0 -- if cell has less than 4 neighbors, die
     else return cell end -- if cell has exactly 4 neighbors, do nothing
 end
